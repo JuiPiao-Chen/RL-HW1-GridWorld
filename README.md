@@ -42,15 +42,10 @@ Open http://localhost:5000 in browser.
 ## Project Structure
 
 ```
-HW_1/
 ├── app.py                 # Flask backend + RL algorithms
 ├── templates/
 │   └── index.html         # Frontend UI
-├── requirements.txt       # Python dependencies
-├── a.txt                  # Assignment description
-├── HW1-1.png              # Reference screenshot
-├── HW1-2.png              # Reference screenshot
-└── HW1-3.png              # Reference screenshot
+└── requirements.txt       # Python dependencies
 ```
 
 ## Author
