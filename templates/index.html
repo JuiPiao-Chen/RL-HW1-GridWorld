@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RL Grid World - HW1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #edf2f7;
+            color: #1a202c;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* ── Top accent bar ──────────────────── */
+        .top-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #0066ff, #00b4d8, #00d97e);
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 32px 28px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            color: #1a202c;
+            letter-spacing: 1.5px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 28px;
+            font-weight: 500;
+        }
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            margin: 22px 0 12px;
+            color: #0066ff;
+            letter-spacing: 1px;
+        }
+
+        /* ── Card container ──────────────────── */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* ── Controls ─────────────────────────── */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .controls label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .controls input[type=number] {
+            width: 64px;
+            padding: 8px 10px;
+            font-size: 16px;
+            font-family: 'Orbitron', sans-serif;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            background: #f7fafc;
+            color: #0066ff;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .controls input[type=number]:focus {
+            border-color: #0066ff;
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
+        }
+
+        button {
+            padding: 9px 20px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 2px solid #0066ff;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #0066ff;
+            color: #ffffff;
+            transition: all .2s;
+        }
+        button:hover {
+            background: #0052cc;
+            border-color: #0052cc;
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.25);
+            transform: translateY(-1px);
+        }
+        button:active { transform: translateY(0); }
+        button:disabled {
+            border-color: #cbd5e0;
+            background: #cbd5e0;
+            color: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .btn-green {
+            border-color: #00b85e;
+            background: #00b85e;
+        }
+        .btn-green:hover {
+            background: #009a4e;
+            border-color: #009a4e;
+            box-shadow: 0 4px 12px rgba(0, 184, 94, 0.25);
+        }
+        .btn-orange {
+            border-color: #e85d26;
+            background: #e85d26;
+        }
+        .btn-orange:hover {
+            background: #cf4e1c;
+            border-color: #cf4e1c;
+            box-shadow: 0 4px 12px rgba(232, 93, 38, 0.25);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #4a5568;
+            border-color: #cbd5e0;
+        }
+        .btn-outline:hover {
+            background: #f7fafc;
+            border-color: #a0aec0;
+            box-shadow: none;
+            color: #2d3748;
+        }
+
+        /* ── Instructions / Status ────────────── */
+        .instructions {
+            background: #f0f7ff;
+            border-left: 4px solid #0066ff;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #4a5568;
+        }
+        .instructions b { color: #0066ff; }
+
+        .status-bar {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .status-bar span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .s-start {
+            background: #e6fff2;
+            color: #00875a;
+            border: 1px solid #b5f5d8;
+        }
+        .s-start::before {
+            content: '';
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #00b85e;
+        }
+        .s-end {
+            background: #fff0f0;
+            color: #c9302c;
+            border: 1px solid #fcc;
+        }
+        .s-end::before {
+            content: '';
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #e53e3e;
+        }
+        .s-obstacle {
+            background: #f1f3f5;
+            color: #5a6672;
+            border: 1px solid #dde1e6;
+        }
+        .s-obstacle::before {
+            content: '';
+            width: 8px; height: 8px;
+            border-radius: 2px;
+            background: #8e9baa;
+        }
+
+        /* ── Grid ─────────────────────────────── */
+        .grid-wrapper {
+            display: inline-block;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+        }
+        table.grid {
+            border-collapse: separate;
+            border-spacing: 4px;
+        }
+        table.grid td {
+            width: 74px;
+            height: 74px;
+            text-align: center;
+            vertical-align: middle;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            transition: all .2s;
+            user-select: none;
+            background: #ffffff;
+        }
+        table.grid td:hover {
+            border-color: #90cdf4;
+            background: #f0f7ff;
+            box-shadow: 0 2px 8px rgba(0, 102, 255, 0.1);
+        }
+        td .cell-num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: #a0aec0;
+            font-weight: 700;
+        }
+        td .arrow {
+            font-size: 26px;
+            font-weight: bold;
+            line-height: 1;
+            color: #2d3748;
+        }
+        td .value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            color: #718096;
+            font-weight: 700;
+        }
+        td .label-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 7px;
+            font-weight: 900;
+            position: absolute;
+            top: 4px; left: 6px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Cell types */
+        .cell-start {
+            background: #d4f5e4 !important;
+            border-color: #48bb78 !important;
+        }
+        .cell-start:hover {
+            background: #c6f0d8 !important;
+        }
+        .cell-end {
+            background: #fde2e2 !important;
+            border-color: #fc8181 !important;
+        }
+        .cell-end:hover {
+            background: #fcd5d5 !important;
+        }
+        .cell-obstacle {
+            background: #e8ecf0 !important;
+            border-color: #cbd5e0 !important;
+            cursor: pointer;
+        }
+        .cell-obstacle .cell-num { color: #a0aec0; }
+        .cell-path {
+            background: #e1faf0 !important;
+            border-color: #68d8a4 !important;
+        }
+
+        .cell-start .cell-num { color: #276749; }
+        .cell-end .cell-num   { color: #9b2c2c; }
+        .cell-start .arrow    { color: #22543d; }
+        .cell-end .arrow      { color: #9b2c2c; }
+        .cell-start .value    { color: #276749; }
+        .cell-end .value      { color: #9b2c2c; }
+        .cell-start .label-tag { color: #22543d; }
+        .cell-end .label-tag   { color: #9b2c2c; }
+        .cell-path .arrow     { color: #22543d; }
+        .cell-path .value     { color: #276749; }
+
+        /* ── Legend ────────────────────────────── */
+        .legend {
+            margin-top: 16px;
+            font-size: 13px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            color: #718096;
+            font-weight: 500;
+        }
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .legend .box {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border-radius: 4px;
+        }
+
+        /* ── Initial message ──────────────────── */
+        .init-msg {
+            color: #718096;
+            font-size: 15px;
+            padding: 30px 0;
+            text-align: center;
+        }
+        .init-msg b { color: #0066ff; }
+
+        /* ── Guide section ────────────────────── */
+        .guide {
+            margin-bottom: 20px;
+        }
+        .guide-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 14px 20px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: all .2s;
+        }
+        .guide-toggle:hover { border-color: #90cdf4; }
+        .guide-toggle h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0066ff;
+            letter-spacing: 1px;
+        }
+        .guide-toggle .arrow-icon {
+            font-size: 18px;
+            color: #a0aec0;
+            transition: transform .3s;
+        }
+        .guide-toggle.open .arrow-icon {
+            transform: rotate(180deg);
+        }
+        .guide-toggle.open {
+            border-radius: 12px 12px 0 0;
+            border-bottom: none;
+        }
+        .guide-body {
+            display: none;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 8px 20px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .guide-body.open { display: block; }
+
+        .step {
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f3f6;
+        }
+        .step:last-child { border-bottom: none; }
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+        .step-num-blue   { background: #e8f0fe; color: #0066ff; }
+        .step-num-green  { background: #e6fff2; color: #00875a; }
+        .step-num-orange { background: #fff3e6; color: #c05621; }
+        .step-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        .step-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-blue   { background: #e8f0fe; color: #0066ff; }
+        .badge-green  { background: #e6fff2; color: #00875a; }
+        .badge-orange { background: #fff3e6; color: #c05621; }
+        .step-desc {
+            font-size: 13.5px;
+            line-height: 1.8;
+            color: #4a5568;
+            padding-left: 40px;
+        }
+        .step-desc ul {
+            margin: 6px 0;
+            padding-left: 18px;
+        }
+        .step-desc li { margin-bottom: 4px; }
+        .step-desc code {
+            background: #f0f3f6;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #0066ff;
+        }
+        .param-table {
+            margin: 10px 0 4px 0;
+            border-collapse: collapse;
+            font-size: 13px;
+            width: 100%;
+            max-width: 500px;
+        }
+        .param-table th {
+            text-align: left;
+            padding: 6px 12px;
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 700;
+            border: 1px solid #e2e8f0;
+        }
+        .param-table td {
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar"></div>
+<div class="container">
+
+<h1>RL GRID WORLD</h1>
+<p class="subtitle">Reinforcement Learning - Policy Evaluation & Value Iteration</p>
+
+<!-- Grid size input -->
+<div class="card">
+    <div class="controls">
+        <label for="gridSize">Grid Dimension (5 - 9):</label>
+        <input type="number" id="gridSize" min="5" max="9" value="5">
+        <button onclick="generateGrid()">Generate Square</button>
+    </div>
+</div>
+
+<!-- Usage Guide -->
+<div class="guide">
+    <div class="guide-toggle" id="guideToggle" onclick="toggleGuide()">
+        <h3>USAGE GUIDE</h3>
+        <span class="arrow-icon">&#9660;</span>
+    </div>
+    <div class="guide-body" id="guideBody">
+
+        <div class="step">
+            <div class="step-header">
+                <span class="step-num step-num-blue">1</span>
+                <span class="step-title">建立網格地圖</span>
+                <span class="step-badge badge-blue">HW1-1</span>
+            </div>
+            <div class="step-desc">
+                <ul>
+                    <li>在上方輸入框填入 <code>5</code> ~ <code>9</code> 的數字，決定網格大小 (n x n)。</li>
+                    <li>點擊 <b>Generate Square</b> 按鈕產生空白網格。</li>
+                    <li>依序點擊格子來設定：
+                        <ul>
+                            <li>第 1 次點擊 → 設定<b style="color:#00875a;">起點 (綠色)</b>：Agent 出發的位置。</li>
+                            <li>第 2 次點擊 → 設定<b style="color:#c9302c;">終點 (紅色)</b>：Agent 的目標位置，到達即結束。</li>
+                            <li>後續點擊 → 設定<b style="color:#5a6672;">障礙物 (灰色)</b>：Agent 無法通過的格子，最多可設 <code>n-2</code> 個。</li>
+                        </ul>
+                    </li>
+                    <li>再次點擊已標記的格子可以<b>取消</b>該設定。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-header">
+                <span class="step-num step-num-green">2</span>
+                <span class="step-title">隨機策略 + 策略評估</span>
+                <span class="step-badge badge-green">HW1-2</span>
+            </div>
+            <div class="step-desc">
+                <ul>
+                    <li>設定好起點與終點後，點擊 <b style="color:#00875a;">HW1-2: Random Policy</b> 按鈕。</li>
+                    <li>系統會為每個格子<b>隨機指定一個行動方向</b>（↑↓←→），這就是「策略 (Policy)」。</li>
+                    <li>接著使用<b>策略評估 (Policy Evaluation)</b> 演算法，計算在此隨機策略下每個格子的<b>狀態價值 V(s)</b>。</li>
+                    <li>格子中會同時顯示：
+                        <ul>
+                            <li><b>箭頭</b>：該格子的行動方向</li>
+                            <li><b>數值</b>：V(s)，代表從該格子出發，遵循此策略所能獲得的期望累計回報</li>
+                        </ul>
+                    </li>
+                </ul>
+                <table class="param-table">
+                    <tr><th>參數</th><th>值</th><th>說明</th></tr>
+                    <tr><td>Step Reward</td><td>-1</td><td>每走一步的獎勵（懲罰）</td></tr>
+                    <tr><td>Discount Factor (&#947;)</td><td>0.9</td><td>未來獎勵的折扣係數</td></tr>
+                    <tr><td>終點 V(s)</td><td>0</td><td>到達終點後不再獲得獎勵</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-header">
+                <span class="step-num step-num-orange">3</span>
+                <span class="step-title">價值迭代 → 最佳策略</span>
+                <span class="step-badge badge-orange">HW1-3 Bonus</span>
+            </div>
+            <div class="step-desc">
+                <ul>
+                    <li>點擊 <b style="color:#c05621;">HW1-3: Value Iteration</b> 按鈕。</li>
+                    <li>系統會執行<b>價值迭代 (Value Iteration)</b> 演算法，反覆更新每個格子的價值，直到收斂。</li>
+                    <li>收斂後自動推導出<b>最佳策略 (Optimal Policy)</b>：每個格子選擇能使 V(s) 最大的行動方向。</li>
+                    <li>從起點到終點的<b>最佳路徑</b>會以<b style="color:#00875a;">淺綠色</b>高亮顯示。</li>
+                    <li>V(s) 越接近 0 代表離終點越近（需要的步數越少）。</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Dynamic content area -->
+<div id="app">
+    <div class="card">
+        <p class="init-msg">Enter a grid size and click <b>Generate Square</b> to initialize the environment.</p>
+    </div>
+</div>
+
+</div><!-- container -->
+
+<script>
+/* ================================================================
+   Guide toggle
+   ================================================================ */
+function toggleGuide() {
+    const toggle = document.getElementById('guideToggle');
+    const body = document.getElementById('guideBody');
+    toggle.classList.toggle('open');
+    body.classList.toggle('open');
+}
+
+/* ================================================================
+   State
+   ================================================================ */
+let gridState = null;
+let n = 0;
+let maxObstacles = 0;
+let policyData = null;
+let pathSet = new Set();
+let mode = 'setup';
+
+/* ================================================================
+   API helpers
+   ================================================================ */
+async function api(url, body) {
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+    });
+    return res.json();
+}
+
+/* ================================================================
+   Generate grid
+   ================================================================ */
+async function generateGrid() {
+    const val = parseInt(document.getElementById('gridSize').value);
+    if (isNaN(val) || val < 5 || val > 9) {
+        alert('Please enter a number between 5 and 9');
+        return;
+    }
+    const data = await api('/api/generate', {n: val});
+    if (data.error) { alert(data.error); return; }
+    n = data.n;
+    maxObstacles = data.max_obstacles;
+    gridState = data.grid;
+    policyData = null;
+    pathSet.clear();
+    mode = 'setup';
+    render();
+}
+
+/* ================================================================
+   Cell click
+   ================================================================ */
+async function cellClick(row, col) {
+    if (mode !== 'setup') return;
+    const data = await api('/api/click', {row, col});
+    if (data.error) { alert(data.error); return; }
+    gridState = data.grid;
+    render();
+}
+
+/* ================================================================
+   Random policy
+   ================================================================ */
+async function randomPolicy() {
+    const data = await api('/api/random_policy', {});
+    if (data.error) { alert(data.error); return; }
+    gridState = data.grid;
+    policyData = {};
+    for (const key in data.policy) {
+        policyData[key] = {arrow: data.policy[key], value: data.values[key]};
+    }
+    gridState.forEach(row => row.forEach(c => {
+        const k = c.row + ',' + c.col;
+        if (c.type === 'end' && !(k in policyData)) {
+            policyData[k] = {arrow: '', value: data.values[k] || 0};
+        }
+    }));
+    pathSet.clear();
+    mode = 'policy';
+    render();
+}
+
+/* ================================================================
+   Value iteration
+   ================================================================ */
+async function valueIteration() {
+    const data = await api('/api/value_iteration', {});
+    if (data.error) { alert(data.error); return; }
+    gridState = data.grid;
+    policyData = {};
+    for (const key in data.policy) {
+        policyData[key] = {arrow: data.policy[key], value: data.values[key]};
+    }
+    gridState.forEach(row => row.forEach(c => {
+        const k = c.row + ',' + c.col;
+        if (c.type === 'end' && !(k in policyData)) {
+            policyData[k] = {arrow: '', value: data.values[k] || 0};
+        }
+    }));
+    pathSet = new Set(data.path || []);
+    mode = 'optimal';
+    render();
+}
+
+/* ================================================================
+   Reset
+   ================================================================ */
+function resetSetup() {
+    policyData = null;
+    pathSet.clear();
+    mode = 'setup';
+    render();
+}
+
+/* ================================================================
+   Render
+   ================================================================ */
+function render() {
+    if (!gridState) return;
+    const app = document.getElementById('app');
+
+    let hasStart = false, hasEnd = false, obstacleCount = 0;
+    gridState.forEach(row => row.forEach(c => {
+        if (c.type === 'start') hasStart = true;
+        if (c.type === 'end') hasEnd = true;
+        if (c.type === 'obstacle') obstacleCount++;
+    }));
+
+    let html = '<div class="card">';
+
+    html += `<h2>[ ${n} x ${n} GRID ]</h2>`;
+
+    if (mode === 'setup') {
+        html += `<div class="instructions">`;
+        html += `1. Click a cell to set <b>START</b>, then <b>END</b>, then up to <b>${maxObstacles}</b> obstacles.<br>`;
+        html += `2. Click a marked cell again to remove it.`;
+        html += `</div>`;
+    } else if (mode === 'policy') {
+        html += `<div class="instructions">Displaying <b>random policy</b> (arrows) and <b>V(s)</b> from policy evaluation.</div>`;
+    } else {
+        html += `<div class="instructions">Displaying <b>optimal policy</b> via value iteration. The highlighted path shows the optimal route.</div>`;
+    }
+
+    html += `<div class="status-bar">`;
+    html += `<span class="s-start">Start: ${hasStart ? 'SET' : 'N/A'}</span>`;
+    html += `<span class="s-end">End: ${hasEnd ? 'SET' : 'N/A'}</span>`;
+    html += `<span class="s-obstacle">Obstacles: ${obstacleCount} / ${maxObstacles}</span>`;
+    html += `</div>`;
+
+    html += `<div class="grid-wrapper"><table class="grid">`;
+    gridState.forEach((row, ri) => {
+        html += '<tr>';
+        row.forEach((cell, ci) => {
+            let cls = '';
+            const key = cell.row + ',' + cell.col;
+            const isPath = pathSet.has(key);
+
+            if (cell.type === 'start')         cls = 'cell-start';
+            else if (cell.type === 'end')      cls = 'cell-end';
+            else if (cell.type === 'obstacle') cls = 'cell-obstacle';
+            else if (isPath)                    cls = 'cell-path';
+
+            const pd = policyData ? policyData[key] : null;
+            let inner = '';
+
+            if (cell.type === 'obstacle') {
+                inner = `<span class="cell-num">${cell.num}</span>`;
+            } else if (pd && mode !== 'setup') {
+                if (cell.type === 'start') inner += `<span class="label-tag">START</span>`;
+                if (cell.type === 'end')   inner += `<span class="label-tag">END</span>`;
+                inner += `<span class="arrow">${pd.arrow}</span><br>`;
+                inner += `<span class="value">${pd.value}</span>`;
+            } else {
+                inner = `<span class="cell-num">${cell.num}</span>`;
+            }
+
+            html += `<td class="${cls}" onclick="cellClick(${cell.row},${cell.col})">${inner}</td>`;
+        });
+        html += '</tr>';
+    });
+    html += `</table></div>`;
+
+    html += `<div class="legend">
+        <span><span class="box" style="background:#d4f5e4;border:2px solid #48bb78;"></span> Start</span>
+        <span><span class="box" style="background:#fde2e2;border:2px solid #fc8181;"></span> End</span>
+        <span><span class="box" style="background:#e8ecf0;border:2px solid #cbd5e0;"></span> Obstacle</span>
+        <span><span class="box" style="background:#e1faf0;border:2px solid #68d8a4;"></span> Optimal Path</span>
+    </div>`;
+
+    if (hasStart && hasEnd) {
+        html += `<div class="controls" style="margin-top:22px;">`;
+        if (mode !== 'setup') {
+            html += `<button class="btn-outline" onclick="resetSetup()">Back to Setup</button>`;
+        }
+        html += `<button class="btn-green" onclick="randomPolicy()">HW1-2: Random Policy</button>`;
+        html += `<button class="btn-orange" onclick="valueIteration()">HW1-3: Value Iteration</button>`;
+        html += `</div>`;
+    }
+
+    html += '</div>'; // card
+    app.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
