@@ -6,6 +6,10 @@ Flask 網頁應用程式，實作強化學習中的 **策略評估 (Policy Evalu
 
 > **Live Demo:** [https://chen-huan-rl-hw1.onrender.com](https://chen-huan-rl-hw1.onrender.com)
 
+## Screenshot
+
+![Grid World Demo](image.png)
+
 ## Features
 
 ### HW1-1: Grid Map Development
